@@ -42,6 +42,7 @@ for i in [0,1,3,4]:
         if match['state']!='CONCLUDED':
             if j<70:
                 stagedata['regular'][j] = matchdata
+                stagedata['regular'][j]['maps'] = [mapguids[game['attributes']['mapGuid']] for game in match['games']]
         else:
             matchdata['completed']=True
             for game in match["games"]:
