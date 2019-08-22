@@ -16,6 +16,9 @@ mapnames = ['Havana', 'temple-of-anubis', 'kings-row', 'hanamura', 'gibraltar', 
                 'hollywood', 'dorado', 'nepal', 'route-66', 'lijiang', 'ilios', 'eichenwalde', 'oasis',
                 'horizon-lunar-colony', 'junkertown', 'blizzard-world', 'rialto', 'busan', 'paris']
 
+postseasonmappool = ['lijiang','ilios','busan','horizon-lunar-colony','temple-of-anubis','hanamura','numbani','eichenwalde',
+                        'kings-row','dorado','gibraltar','rialto']
+
 colorrequests = requests.get("https://api.overwatchleague.com/teams",timeout=10).text
 colordata = json.loads(colorrequests)['competitors']
 
@@ -40,6 +43,17 @@ class EloCalculations:
 
         self.margins_of_victory = []
 
+    def makeCopy(self, season):
+        self.overall_elos = {t:season.overall_elos[t] for t in teams}
+        self.maptype_elos = {t:{m:season.maptype_elos[t][m] for m in maptypes} for t in teams}
+        self.mapname_elos = {t:{m:season.mapname_elos[t][m] for m in mapnames} for t in teams}
+
+        self.map_draws = {m:[season.map_draws[m][0],season.map_draws[m][1]] for m in mapnames}
+        self.margins_of_victory = [x for x in season.margins_of_victory]
+
+        self.standings = {t:{'w':season.standings[t]['w'],'l':season.standings[t]['l'],'d':season.standings[t]['d']} for t in teams}
+
+    def calculateElos(self):
         def applyStageDecay():
             for t in teams:
                 self.overall_elos[t]*=decay_factor
@@ -262,7 +276,7 @@ class EloCalculations:
             self.standings[team2]['d']+=score[1]-score[0]
 
         if type=='playoffs':
-            mappreferences = {t:{mt:[x for x in mapnames if self.getMapType(x)==mt] for mt in maptypes} for t in [team1,team2]}
+            mappreferences = {t:{mt:[x for x in postseasonmappool if self.getMapType(x)==mt] for mt in maptypes} for t in [team1,team2]}
             for t in [team1,team2]:
                 for mt in maptypes:
                     mappreferences[t][mt].sort(key=lambda x:self.mapname_elos[t][x]-self.mapname_elos[{team1:team2,team2:team1}[t]][x],reverse=True)

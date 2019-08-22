@@ -11,15 +11,19 @@ avg_place = {t:0 for t in teams}
 
 teamplayoffs = {t:[0,0,0,0,0,0,0,0,0] for t in teams}
 
+placement_rate = {t:[0]*20 for t in teams}
+
 playoffteamlist = {}
 
 loops = 10000
 
 baseseason = EloCalculations()
+baseseason.calculateElos()
 tobeplayed = [x for x in baseseason.matchdata['stages'][3]['regular'] if not x['completed']]
 
 for i in range(loops):
-    season = copy.deepcopy(baseseason)
+    season = EloCalculations()
+    season.makeCopy(baseseason)
 
     for match in tobeplayed:
         season.simulateSingleMatch(match['t1'],match['t2'],match['maps'])
@@ -30,6 +34,8 @@ for i in range(loops):
         if finalstandings.index(t)<6: top6[t]+=1
         if finalstandings.index(t)<12: top12[t]+=1
         avg_place[t]+=finalstandings.index(t)+1
+
+        placement_rate[t][finalstandings.index(t)]+=1
 
     # POSTSEASON
     atl_lead = sorted(atl_div,key=finalstandings.index)[0]
@@ -122,7 +128,7 @@ for i in range(loops):
         if playoffplacements.index(t)<12: teamplayoffs[t][7]+=1
         teamplayoffs[t][8]+=1
     
-    pt = ''.join(sorted(playoffteams))
+    pt = ''.join(playoffteams)
     if pt not in playoffteamlist: playoffteamlist[pt]=0
     playoffteamlist[pt]+=1
 
@@ -140,11 +146,22 @@ for t in sorted(teams,key=lambda t:teamplayoffs[t][0],reverse=True):
     for i in range(9): row.append("{:.2%}".format(teamplayoffs[t][i]/loops))
     table2.append(row)
 
-print(tabulate(table1))
+def formatzeropercent(x):
+    if round(x*100)==0 and x>0: return "<1%"
+    elif x==0: return ""
+    else: return "{:.0%}".format(x)
+
+table3 = [['Team','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th','13th','14th','15th','16th','17th','18th','19th','20th']]
+
+for t in sorted(teams,key=lambda x:avg_place[x],reverse=False):
+    table3.append([t]+[formatzeropercent(x/loops) for x in placement_rate[t]])
+
+#print(tabulate(table1))
 print(tabulate(table2))
+print(tabulate(table3))
 
 likelylist1 = max(playoffteamlist,key=playoffteamlist.get)
 likelylist2 = [likelylist1[3*i:3*i+3] for i in range(8)]
 
-print("Most Likely Playoff Team List:",sorted(likelylist2,key=lambda x:teamplayoffs[x][0],reverse=True))
+print("Most Likely Playoff Team List (w/ seeds):",likelylist2)
 print("Which occurred {:.2%} of the time.".format(playoffteamlist[likelylist1]/loops))

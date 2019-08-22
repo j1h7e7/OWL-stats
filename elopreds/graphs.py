@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt,gridspec,lines
 from elocalculations import EloCalculations, teams
 
 rankings = EloCalculations()
+rankings.calculateElos()
 
 # Cosmetic Scaling:
 elo_center = 1000
@@ -24,8 +25,8 @@ for t in teams:
         plt.plot(x,y,color=rankings.teamcolors[t][1],linestyle='dashed',dashes=[5,5],lw=width)
 
     stageelos = rankings.elorecords[t][3]
-    x = [3+i*rankings.stage4played[t]/(7*len(stageelos)) for i in range(min(len(stageelos),28))]
-    y = [stageelos[i]*elo_scaler+elo_center for i in range(min(len(stageelos),28))]
+    x = [3+i*rankings.stage4played[t]/(7*len(stageelos)) for i in range(len(stageelos))]
+    y = [stageelos[i]*elo_scaler+elo_center for i in range(len(stageelos))]
     plt.plot(x,y,color=rankings.teamcolors[t][0],lw=width)
     plt.plot(x,y,color=rankings.teamcolors[t][1],linestyle='dashed',dashes=[3,3],lw=width)
 
