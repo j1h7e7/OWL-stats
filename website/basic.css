@@ -1,0 +1,67 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    color: white;
+    background-color: rgb(51,51,51);
+    margin: 0;
+}
+#left {
+    width: 50%;
+    height: 100%;
+    background: black;
+    float: left;
+}
+#right {
+    width: 50%;
+    height: 100%;
+    background: #555555;
+    float: right;
+}
+
+ul {
+    margin-left: 0;
+    margin-top: 0;
+    padding: 5px;
+}
+li {
+    list-style: none;
+    display: flex;
+    align-content: center;
+    text-align: center;
+}
+#titlebar {
+    padding: 5px;
+    font-size: 20px;
+    display: flex;
+    text-align: center;
+}
+.teamname .teamelo .teamrecord .teamdif .elodelta .placedelta {
+    height: 30px;
+    line-height: 30px;
+}
+.teamname {
+    justify-content: center;
+    text-align: left;
+    padding-left: 10px;
+    flex: 0.7;
+}
+.teamelo {
+    margin-left: auto;
+    min-width: 60px;
+}
+.teamrecord {
+    margin-left: auto;
+    min-width: 60px;
+}
+.teamdif {
+    margin-left: auto;
+    min-width: 60px;
+}
+.elodelta {
+    margin-left: auto;
+    min-width: 100px;
+}
+.placedelta {
+    margin-left: auto;
+    min-width: 120px;
+}

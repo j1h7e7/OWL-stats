@@ -1,0 +1,30 @@
+#current-match-box {
+    text-align: center;
+    margin: 10px;
+}
+#other-matches-box {
+    text-align: center;
+    margin: 10px;
+}
+#previous-map {
+    width: 50%;
+    height: 100%;
+    min-height: 40px;
+    float: left;
+}
+#next-map {
+    margin-left: 50%;
+    width: 50%;
+    height: 100%;
+    min-height: 40px;
+}
+#previous-match {
+    width: 50%;
+    height: 100%;
+    float: left;
+}
+#next-match {
+    margin-left: 50%;
+    width: 50%;
+    height: 100%;
+}

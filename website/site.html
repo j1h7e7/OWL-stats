@@ -1,8 +1,58 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>OWL Elo Calculator</title>
+        <link rel="stylesheet" href="./basic.css">
+        <link rel="stylesheet" href="./matches.css">
     </head>
     <body>
-        TEST
+        <div id="left">
+            <div id="titlebar">
+                <span class="teamname">Team</span>
+                <span class="teamelo">Elo</span>
+                <span class="teamrecord">W/L</span>
+                <span class="teamdif">MD</span>
+                <span class="elodelta">Elo Change</span>
+                <span class="placedelta">Rank Change</span>
+            </div>
+            <ul id="teamlist">
+            </ul>
+        </div>
+        <div id="right">
+            <div id="current-match-box">
+                Current Match
+                <div id="current-match">
+                    <table style="margin-left: auto; margin-right: auto;"><tr>
+                        <td><span id="cm-team1"></span></td>
+                        <td><span id="cm-teamnames"></span></td>
+                        <td><span id="cm-team2"></span></td>
+                    </tr><tr>
+                        <td></td>
+                        <td><span id="cm-time"></span></td>
+                    </tr></table>
+                </div>
+                <div id="current-map">CURRENT MAP</div>
+                <div id="previous-map">PREVIOUS MAP</div>
+                <div id="next-map">NEXT MAP</div>
+            </div>
+            <div id="other-matches-box">
+                <div id="previous-match"></div>
+                <div id="next-match"></div>
+            </div>
+        </div>
+
+
+        <script src=./data.json></script>
+        <script src=./teams.js></script>
+        <script src=./record.js></script>
+        <script src=./elo.js></script>
+        <script src=./matches.js></script>
+
+        <script>
+            document.body.addEventListener("keydown", function(event) {
+                if (event.keyCode==39) increment();
+                if (event.keyCode==37) decrement();
+            })
+        </script>
     </body>
 </html>
