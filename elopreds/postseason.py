@@ -19,14 +19,10 @@ loops = 10000
 
 baseseason = EloCalculations()
 baseseason.calculateElos()
-tobeplayed = [x for x in baseseason.matchdata['stages'][3]['regular'] if not x['completed']]
+season = EloCalculations()
 
 for i in range(loops):
-    season = EloCalculations()
     season.makeCopy(baseseason)
-
-    for match in tobeplayed:
-        season.simulateSingleMatch(match['t1'],match['t2'],match['maps'])
 
     finalstandings = sorted(teams,key=lambda t:(season.standings[t]['w'],season.standings[t]['d']),reverse=True)
 
