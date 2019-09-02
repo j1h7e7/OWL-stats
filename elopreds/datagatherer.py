@@ -11,7 +11,7 @@ for t in teamiddata['competitors']:
     teamids[t['competitor']['id']] = t['competitor']['abbreviatedName']
 
 schedule = json.loads(requests.get("https://api.overwatchleague.com/schedule?season=2019",timeout=10).text)
-#finaldata = {'stages':[]}
+#finaldata = {'stages':[[],[],[],[]]}
 finaldata = json.loads(open("data.json",'r').read())
 
 stages = schedule["data"]["stages"]

@@ -73,52 +73,54 @@ class EloCalculations:
     def eloCalculateMatch(self, match):
         t1, t2 = match['t1'], match['t2']
 
-        for map in match['maps']:
-            t1_elo = (self.overall_elos[t1]*overall_weight + 
-                    self.mapname_elos[t1][map['mapname']]*mapname_weight + 
-                    self.maptype_elos[t1][map['maptype']]*maptype_weight)
-            t2_elo = (self.overall_elos[t2]*overall_weight + 
-                    self.mapname_elos[t2][map['mapname']]*mapname_weight + 
-                    self.maptype_elos[t2][map['maptype']]*maptype_weight)
+        for map in match['maps']: self.eloCalculateMap(map,t1,t2)
 
-            exp_t1 = 1/(1+10**((t2_elo-t1_elo)/d))      # Expected Scores
-            exp_t2 = 1/(1+10**((t1_elo-t2_elo)/d))
+    def eloCalculateMap(self, map, t1, t2):
+        t1_elo = (self.overall_elos[t1]*overall_weight + 
+                self.mapname_elos[t1][map['mapname']]*mapname_weight + 
+                self.maptype_elos[t1][map['maptype']]*maptype_weight)
+        t2_elo = (self.overall_elos[t2]*overall_weight + 
+                self.mapname_elos[t2][map['mapname']]*mapname_weight + 
+                self.maptype_elos[t2][map['maptype']]*maptype_weight)
 
-            act_t1 = 1 if map['result']=='t1' else 0 if map['result']=='t2' else 0.5    # Actual Scores
-            act_t2 = 1 if map['result']=='t2' else 0 if map['result']=='t1' else 0.5
+        exp_t1 = 1/(1+10**((t2_elo-t1_elo)/d))      # Expected Scores
+        exp_t2 = 1/(1+10**((t1_elo-t2_elo)/d))
 
-            self.map_draws[map['mapname']][0] += 1 if act_t1==0.5 else 0    # Draw %
-            self.map_draws[map['mapname']][1] += 1
+        act_t1 = 1 if map['result']=='t1' else 0 if map['result']=='t2' else 0.5    # Actual Scores
+        act_t2 = 1 if map['result']=='t2' else 0 if map['result']=='t1' else 0.5
 
-            MoV = 1         # Margin of Victory
-            elo_dif = 0     # Elo Difference
-            if act_t1==1:   # The team that won determines the margin of victory
+        self.map_draws[map['mapname']][0] += 1 if act_t1==0.5 else 0    # Draw %
+        self.map_draws[map['mapname']][1] += 1
+
+        MoV = 1         # Margin of Victory
+        elo_dif = 0     # Elo Difference
+        if act_t1==1:   # The team that won determines the margin of victory
+            MoV = (map['deaths'][t2]+1)/(map['deaths'][t1]+1)
+            elo_dif = t1_elo-t2_elo
+        elif act_t2==1:
+            MoV = (map['deaths'][t1]+1)/(map['deaths'][t2]+1)
+            elo_dif = t2_elo-t1_elo
+        else:           # In case of a draw, the team with higher elo determines margin of "victory"
+            if t1_elo>t2_elo:
                 MoV = (map['deaths'][t2]+1)/(map['deaths'][t1]+1)
                 elo_dif = t1_elo-t2_elo
-            elif act_t2==1:
+            elif t1_elo>t2_elo:
                 MoV = (map['deaths'][t1]+1)/(map['deaths'][t2]+1)
                 elo_dif = t2_elo-t1_elo
-            else:           # In case of a draw, the team with higher elo determines margin of "victory"
-                if t1_elo>t2_elo:
-                    MoV = (map['deaths'][t2]+1)/(map['deaths'][t1]+1)
-                    elo_dif = t1_elo-t2_elo
-                elif t1_elo>t2_elo:
-                    MoV = (map['deaths'][t1]+1)/(map['deaths'][t2]+1)
-                    elo_dif = t2_elo-t1_elo
-            
-            mult = math.log(1 + MoV) * 1 / (elo_dif * 0.001 + 1)
-            self.margins_of_victory.append(mult)
+        
+        mult = math.log(1 + MoV) * 1 / (elo_dif * 0.001 + 1)
+        self.margins_of_victory.append(mult)
 
-            t1_change = k * (act_t1 - exp_t1) * mult
-            t2_change = k * (act_t2 - exp_t2) * mult
+        t1_change = k * (act_t1 - exp_t1) * mult
+        t2_change = k * (act_t2 - exp_t2) * mult
 
-            self.overall_elos[t1] += t1_change
-            self.maptype_elos[t1][map["maptype"]] += t1_change
-            self.mapname_elos[t1][map["mapname"]] += t1_change
+        self.overall_elos[t1] += t1_change
+        self.maptype_elos[t1][map["maptype"]] += t1_change
+        self.mapname_elos[t1][map["mapname"]] += t1_change
 
-            self.overall_elos[t2] += t2_change
-            self.maptype_elos[t2][map["maptype"]] += t2_change
-            self.mapname_elos[t2][map["mapname"]] += t2_change
+        self.overall_elos[t2] += t2_change
+        self.maptype_elos[t2][map["maptype"]] += t2_change
+        self.mapname_elos[t2][map["mapname"]] += t2_change
     
     def predictMatch(self,team1, team2, maps, loops = 10000):
         results = {}
@@ -225,14 +227,17 @@ class EloCalculations:
             for mt in maptypes:
                 mappreferences[t][mt].sort(key=lambda x:self.mapname_elos[t][x]-self.mapname_elos[{team1:team2,team2:team1}[t]][x],reverse=True)
 
-        mapprogression = ['control','hybrid','assault','escort']
+        mapprogression = ['control','hybrid','assault','escort','control','hybrid','escort','control','escort'] #?????????
 
         score = [0,0]
         mnum = 0
         picker = team1
 
         while max(score)<firstto:
-            mtype = mapprogression[mnum%4]
+            try: mtype = mapprogression[mnum]
+            except IndexError:
+                if score[1]>score[0]: return [team2,team1]
+                else: return [team1,team2]
             mname = mappreferences[picker][mtype][0]
             mnum += 1
             mappreferences[team1][mtype].remove(mname)

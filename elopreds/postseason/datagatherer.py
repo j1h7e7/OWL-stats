@@ -36,7 +36,7 @@ for w in range(4):
 
             for game in match["games"]:
                 mapname = mapguids[game['attributes']['mapGuid']]
-                maptype = {1:'control',2:'hybrid',3:'assault',0:'escort'}[game["number"]%4]
+                maptype = {1:'control',2:'hybrid',3:'assault',4:'escort',5:'control',6:'hybrid',7:'escort',8:'control'}[game["number"]]
 
                 result = 't1' if game['points'][0]>game['points'][1] else 't2' if game['points'][1]>game['points'][0] else 'draw'
 
