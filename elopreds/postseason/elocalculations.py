@@ -122,55 +122,15 @@ class EloCalculations:
         self.maptype_elos[t2][map["maptype"]] += t2_change
         self.mapname_elos[t2][map["mapname"]] += t2_change
     
-    def predictMatch(self,team1, team2, maps, loops = 10000):
-        results = {}
-        team1wins = 0
-        maptypes = list(map(self.getMapType,maps))
+    def predictMatch(self, team1, team2, loops = 10000):
+        wins = [0,0]
 
         for x in range(loops):
-            team1score = 0
-            team2score = 0
-
-            for i in range(len(maps)):
-                drawchance = self.map_draws[maps[i]][0]/self.map_draws[maps[i]][1]
-
-                elo1 = (self.overall_elos[team1]*overall_weight + 
-                        self.mapname_elos[team1][maps[i]]*mapname_weight + 
-                        self.maptype_elos[team1][maptypes[i]]*maptype_weight)
-                elo2 = (self.overall_elos[team2]*overall_weight + 
-                        self.mapname_elos[team2][maps[i]]*mapname_weight + 
-                        self.maptype_elos[team2][maptypes[i]]*maptype_weight)
-                
-                random_roll = random.random()
-                team1winchance = 1/(1+10**((elo2-elo1)/d))
-
-                #drawchance *= min(team1winchance,1-team1winchance)*2
-
-                if random_roll < team1winchance - drawchance/2: team1score +=1
-                elif random_roll < team1winchance + drawchance/2: pass
-                else: team2score +=1
-            
-            if team1score==team2score:
-                map5 = random.choice([m for m in ['ilios','busan','lijiang'] if m not in maps])
-
-                elo1 = (self.overall_elos[team1]*overall_weight +
-                        self.maptype_elos[team1]['control']*maptype_weight +
-                        self.mapname_elos[team1][map5]*mapname_weight)
-                elo2 = (self.overall_elos[team2]*overall_weight +
-                        self.maptype_elos[team2]['control']*maptype_weight +
-                        self.mapname_elos[team2][map5]*mapname_weight)
-
-                if random.random()< 1/(1+10**((elo2-elo1)/d)): team1score+=1
-                else: team2score +=1
-            
-            scoreline = "{}-{}".format(team1score,team2score)
-            if scoreline not in results: results[scoreline]=0
-            results[scoreline]+=1
-            if team1score>team2score: team1wins += 1 
-
+            result = self.simulateMatch(team1,team2,False)
+            if result[0]==team1: wins[0]+=1
+            elif result[0]==team2: wins[1]+=1
         
-        results = {s:results[s]/loops for s in results}
-        return results, team1wins/loops
+        return wins
 
     def simulateMatch(self, team1, team2, updateelos=True, firstto=4):
         '''
@@ -227,7 +187,7 @@ class EloCalculations:
             for mt in maptypes:
                 mappreferences[t][mt].sort(key=lambda x:self.mapname_elos[t][x]-self.mapname_elos[{team1:team2,team2:team1}[t]][x],reverse=True)
 
-        mapprogression = ['control','hybrid','assault','escort','control','hybrid','escort','control','escort'] #?????????
+        mapprogression = ['control','hybrid','assault','escort','control','hybrid','escort','control'] #?????????
 
         score = [0,0]
         mnum = 0

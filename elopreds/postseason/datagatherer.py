@@ -27,7 +27,8 @@ for w in range(4):
         matchid = match['id']
 
         if match['state']!='CONCLUDED':
-            matchdata = {'completed':False,'maps':[]}
+            try: matchdata = {'completed':False,'maps':[],'t1':match["competitors"][0]["abbreviatedName"],'t2':match["competitors"][1]["abbreviatedName"]}
+            except TypeError: matchdata = {'completed':False,'maps':[]}
             print("Skipping {}-{} because not completed".format(w,j))
         else:
             p1 = match["competitors"][0]["abbreviatedName"]
