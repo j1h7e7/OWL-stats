@@ -27,12 +27,12 @@ postseasondata = json.loads(open("data.json").read())
 basegames = ['']*17
 for i in range(17):
     match = postseasondata[i]
-    if match['maps']:
+    if match['completed']:
         baseseason.eloCalculateMatch(match)
         winner = match['t1'] if len([x for x in match['maps'] if x['result']=='t1'])>len([x for x in match['maps'] if x['result']=='t2']) else match['t2']
         loser  = match['t1'] if len([x for x in match['maps'] if x['result']=='t1'])<len([x for x in match['maps'] if x['result']=='t2']) else match['t2']
         basegames[i] = [winner,loser]
-print(basegames)
+print([x[0] for x in basegames if x])
 
 starttime = time.time()
 
@@ -118,7 +118,7 @@ for i in range(loops):
 
         teamprize[t] += prizes[playoffplacements.index(t)]
     
-    pt = ''.join([games[x][0] for x in range(4,8)])
+    pt = ''.join([games[x][0] for x in range(len([g for g in basegames if g]),len(games))])
     if pt not in likelyteamlist: likelyteamlist[pt]=0
     likelyteamlist[pt]+=1
 
@@ -129,7 +129,6 @@ for i in range(loops):
 
 
 table1 = [['Team','1st','2nd','3rd','4th','5-6th','7-8th','9-10th','11-12th','Prize Money','Elo']]
-
 for t in sorted(teams,key=lambda t:(teamplayoffs[t][0],sum(teamplayoffs[t])),reverse=True):
     row = [t]
     for i in range(8): row.append("{:.2%}".format(teamplayoffs[t][i]/loops))
@@ -137,13 +136,21 @@ for t in sorted(teams,key=lambda t:(teamplayoffs[t][0],sum(teamplayoffs[t])),rev
     row.append(int(baseseason.overall_elos[t]))
     table1.append(row)
 
+table2 = [['Team','1st','2nd','3rd','4th','5-6th','7-8th','Prize Money','Elo']]
+for t in sorted([x for x in teams if teamplayoffs[x][5]>0],key=lambda t:(teamplayoffs[t][0],sum(teamplayoffs[t])),reverse=True):
+    row = [t]
+    for i in range(6): row.append("{:.2%}".format(teamplayoffs[t][i]/loops))
+    row.append("${:10,.2f}".format(teamprize[t]/loops))
+    row.append(int(baseseason.overall_elos[t]))
+    table2.append(row)
+
 print()
-print(tabulate(table1))
+print(tabulate(table2))
 
 likelylist1 = max(likelyteamlist,key=likelyteamlist.get)
-likelylist2 = [likelylist1[3*i:3*i+3] for i in range(4)]
+likelylist2 = [likelylist1[3*i:3*i+3] for i in range(int(len(likelylist1)/3))]
 
-print("Most Likely Semifinals Team List:",likelylist2)
+print("Most Likely Bracket Outcome:",likelylist2)
 print("Which occurred {:.2%} of the time.".format(likelyteamlist[likelylist1]/loops))
 
 #print(time.time()-starttime)

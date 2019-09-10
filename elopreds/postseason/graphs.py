@@ -2,6 +2,9 @@ from elocalculations import EloCalculations
 from matplotlib import pyplot as plt,gridspec,lines
 import json
 
+from scipy.interpolate import interp1d
+import numpy as np
+
 teams = ["VAN","NYE","SFS","HZS","GLA","ATL","LDN","SEO","GZC","PHI","SHD","CDH"]
 decay_factor = 0.8
 
@@ -18,6 +21,7 @@ postseasondata = json.loads(open("data.json").read())
 elo_center = 1000
 elo_scaler = 1
 plt.figure(figsize=(20,7))
+width = 1.5
 
 # Elo Horizontal Lines
 for i in range(-10,10):
@@ -38,23 +42,52 @@ for i in range(17):
     if match['maps']:
         t1, t2 = match['t1'], match['t2']
         for team in [t1,t2]:
+            if teamx[team][-1]==matchconstants[i]: continue
             teamy[team].append(season.overall_elos[team])
             teamx[team].append(matchconstants[i])
         
         for m in range(len(match['maps'])):
             map = match['maps'][m]
             season.eloCalculateMap(map,t1,t2)
+            serieslength = len(match['maps'])
+            if not match['completed']:
+                serieslength = len(match['maps'])+(4-max([len([x for x in match['maps'] if x['result']==t]) for t in ['t1','t2']]))
             for team in [t1,t2]:
                 teamy[team].append(season.overall_elos[team])
-                teamx[team].append(matchconstants[i]+(m+1)/len(match['maps']))
+                teamx[team].append(matchconstants[i]+(m+1)/serieslength)
 
 # Elo Trend Lines
-width = 1.5
+def teamPlot(t,x,y):
+    alpha = [1.0, 0.4]
+
+    plt.plot(x,y,color=season.teamcolors[t][0],alpha=alpha[0],lw=width)
+    plt.plot(x,y,color=season.teamcolors[t][1],alpha=alpha[0],linestyle='dashed',dashes=[3,3],lw=width)
+
+    if len(teamx[t])<4: return
+    xnew = np.linspace(min(x),max(x),100)
+    ynew = interp1d(x,y,kind='cubic')(xnew)
+    #plt.plot(xnew,ynew,color=season.teamcolors[t][0],alpha=alpha[1],lw=width)
+    #plt.plot(xnew,ynew,color=season.teamcolors[t][1],alpha=alpha[1],linestyle='dashed',dashes=[3,3],lw=width)
+
+def chunk(x,y):
+    xchunks = []
+    ychunks = []
+    lastcut = 0
+    for i in range(len(x)-1):
+        if x[i+1]-x[i]>=1:
+            xchunks.append(x[lastcut:i])
+            ychunks.append(y[lastcut:i])
+            lastcut = i+1
+    
+    xchunks.append(x[lastcut:len(x)])
+    ychunks.append(y[lastcut:len(x)])
+
+    return xchunks,ychunks
+
+
 for t in teams:
-    x = teamx[t]
-    y = [i*elo_scaler+elo_center for i in teamy[t]]
-    plt.plot(x,y,color=season.teamcolors[t][0],lw=width)
-    plt.plot(x,y,color=season.teamcolors[t][1],linestyle='dashed',dashes=[3,3],lw=width)
+    xchunks,ychunks = chunk(np.array(teamx[t]),np.array([i*elo_scaler+elo_center for i in teamy[t]]))
+    for i in range(len(xchunks)): teamPlot(t,xchunks[i],ychunks[i])
 
 # Stage Division Lines
 for i in range(numrounds):
@@ -79,7 +112,7 @@ plt.yticks(range(elo_center-elo_scaler*500,elo_center+elo_scaler*500,elo_scaler*
 '''# Graph Bounds
 maxelo = max([max([max(x) for x in season.elorecords[t]]) for t in teams])
 minelo = min([min([min(x) for x in season.elorecords[t]]) for t in teams])'''
-plt.ylim([900,1200])
+plt.ylim([900,1250])
 plt.xlim([0,numrounds])
 
 # Legend

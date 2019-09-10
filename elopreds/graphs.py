@@ -2,6 +2,9 @@ import math
 from matplotlib import pyplot as plt,gridspec,lines
 from elocalculations import EloCalculations, teams
 
+from scipy.interpolate import interp1d
+import numpy as np
+
 rankings = EloCalculations()
 rankings.calculateElos()
 
@@ -17,18 +20,17 @@ for i in range(-10,10):
 # Elo Trend Lines
 width = 1.5
 for t in teams:
-    for stage in range(3):
+    for stage in range(4):
         stageelos = rankings.elorecords[t][stage]
         x = [stage+i/(len(stageelos)) for i in range(len(stageelos))]
         y = [stageelos[i]*elo_scaler+elo_center for i in range(len(stageelos))]
+
+        xnew = np.linspace(min(x),max(x),200)
+        ynew = interp1d(x,y,kind='cubic')(xnew)
+        x, y = xnew, ynew
+
         plt.plot(x,y,color=rankings.teamcolors[t][0],lw=width)
         plt.plot(x,y,color=rankings.teamcolors[t][1],linestyle='dashed',dashes=[5,5],lw=width)
-
-    stageelos = rankings.elorecords[t][3]
-    x = [3+i*rankings.stage4played[t]/(7*len(stageelos)) for i in range(len(stageelos))]
-    y = [stageelos[i]*elo_scaler+elo_center for i in range(len(stageelos))]
-    plt.plot(x,y,color=rankings.teamcolors[t][0],lw=width)
-    plt.plot(x,y,color=rankings.teamcolors[t][1],linestyle='dashed',dashes=[3,3],lw=width)
 
 # Stage Division Lines
 for i in range(4):
@@ -61,9 +63,5 @@ for t in teams:
     legend1.append((line1,line2))
     legend2.append(t)
 plt.legend(legend1,legend2,bbox_to_anchor=(1.04,1), loc="upper left")
-
-print("Final Elos:")
-for t in sorted(teams,key=lambda x:rankings.elorecords[x][3][-1],reverse=True):
-    print("{}: {}".format(t,int(elo_center+elo_scaler*rankings.elorecords[t][3][-1])))
 
 plt.show()
